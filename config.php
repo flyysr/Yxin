@@ -2,7 +2,7 @@
 /**
  * database connection configuration
  */
-return [
+$dbConfig = [
     'host' => '192.168.123.41',
     'port' => '5432',
     'db' => 'm3vg',

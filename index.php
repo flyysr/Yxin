@@ -5,6 +5,9 @@
  * Time: 13:41
  * email: 981883873@qq.com
  */
+include "db.php";
+include "config.php";
+
 
 $requestUrl = $_SERVER['REQUEST_URI'];
 $requestMethod = $_SERVER['REQUEST_METHOD'];
@@ -32,23 +35,52 @@ if(strpos($queryString, '=')){
 
 
 /**
- * @path        /dbusers/login
- * @method      POST/GET
+ * @path        /login
+ * @method      POST
  */
-function login($queryParams)
+function login($dbConfig, $queryParams)
 {
-    echo('login');
-    echo $queryParams->name;
+    $db = new \Yxin\DB($dbConfig['host'], $dbConfig['port'], $dbConfig['db'], $dbConfig['username'], $dbConfig['password']);
+    $user = $db->query("select a.passwd, u.name from dbusers u LEFT JOIN accounts a on u.name=a.name   where u.name ='dnxdev|".$_POST['username']."';");
+    if(sha1($_POST['password']) == $user[0]['passwd']){
+        return "login success";
+    }
+    var_dump($user);
+
     return 'login executed!';
 }
 
 /**
  * @path /dbusers/projectList
  */
-function projectList()
+function projectList($dbConfig)
 {
-    echo('project list');
+    $db = new \Yxin\DB($dbConfig['host'], $dbConfig['port'], $dbConfig['db'], $dbConfig['username'], $dbConfig['password']);
+    $projects = $db->query('select * from scada_projects limit 10;');
+    var_dump($projects);
     return "projectList executed!";
+}
+
+/**
+ * @path /test
+ * @method GET
+ */
+function test(){
+    echo 'test';
+}
+
+/**
+ *  @path   /alarms
+ */
+function alarms(){
+    echo "alarms";
+}
+/**
+ * @path  /message
+ * @method POST/GET
+ */
+function message(){
+    echo "message";
 }
 
 /**
@@ -97,10 +129,15 @@ function logAccess($status = 200) {
  * execute the page function
  */
 if(array_key_exists($controllerAndAction, $routeMap) && in_array($requestMethod, $routeMap[$controllerAndAction]['method'])) {
+
+    $response = $routeMap[$controllerAndAction]['fun']->invoke($dbConfig, $queryParams);
+    var_dump($response);
+
     logAccess();
-    $routeMap[$controllerAndAction]['fun']->invoke($queryParams);
 }else{
+
     header("Http/1.1 404 NOT_FOUND_PAGE");
+    logAccess(404);
 }
 
 exit;
