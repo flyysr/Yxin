@@ -79,7 +79,7 @@ foreach ($internalFuns as $k => $func) {
         }
 
     }
-    if(!empty($funConfig)){
+    if(!empty($funConfig) && !empty($funConfig['path'])){
         if(!isset($funConfig['method'])){
             $funConfig['method'] = ['GET'];
         }
@@ -87,10 +87,17 @@ foreach ($internalFuns as $k => $func) {
     }
 }
 //var_dump($routeMap);exit;
+
+function logAccess($status = 200) {
+    file_put_contents("php://stdout", sprintf("[%s] %s:%s [%s]: %s\r\n",
+        date("D M j H:i:s Y"), $_SERVER["REMOTE_ADDR"],
+        $_SERVER["REMOTE_PORT"], $status, $_SERVER["REQUEST_URI"]));
+}
 /**
  * execute the page function
  */
 if(array_key_exists($controllerAndAction, $routeMap) && in_array($requestMethod, $routeMap[$controllerAndAction]['method'])) {
+    logAccess();
     $routeMap[$controllerAndAction]['fun']->invoke($queryParams);
 }else{
     header("Http/1.1 404 NOT_FOUND_PAGE");
