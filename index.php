@@ -14,7 +14,7 @@ $controllerAndAction = explode('?', $requestUrl)[0];
  * query Parameters
  */
 $queryParams = new stdClass();
-$queryString = $_SERVER['QUERY_STRING'];
+$queryString = isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : '';
 if(strpos($queryString, '=')){
     if(strpos($queryString, '&')){
         $queryString = explode('&', $queryString);
@@ -33,7 +33,7 @@ if(strpos($queryString, '=')){
 
 /**
  * @path        /dbusers/login
- * @method      POST
+ * @method      POST/GET
  */
 function login($queryParams)
 {
@@ -72,29 +72,25 @@ foreach ($internalFuns as $k => $func) {
 
             if($params[0] == 'path'){
                 $funConfig['path'] = $params[1];
-//                $routeMap[$params[1]] = [
-//                    'f' => $f,
-//                    'method' =>
-//                ];
             }
             if($params[0] == 'method'){
-                $funConfig['method'] = $params[1];
+                $funConfig['method'] = explode('/', preg_replace('/\s+/', '', $params[1]));
             }
         }
 
     }
     if(!empty($funConfig)){
         if(!isset($funConfig['method'])){
-            $funConfig['method'] = 'GET';
+            $funConfig['method'] = ['GET'];
         }
         $routeMap[$funConfig['path']] = $funConfig;
     }
 }
-
+//var_dump($routeMap);exit;
 /**
  * execute the page function
  */
-if(array_key_exists($controllerAndAction, $routeMap) && $requestMethod == $routeMap[$controllerAndAction]['method'] ){
+if(array_key_exists($controllerAndAction, $routeMap) && in_array($requestMethod, $routeMap[$controllerAndAction]['method'])) {
     $routeMap[$controllerAndAction]['fun']->invoke($queryParams);
 }else{
     header("Http/1.1 404 NOT_FOUND_PAGE");
